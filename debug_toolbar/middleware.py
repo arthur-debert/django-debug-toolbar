@@ -12,6 +12,7 @@ from django.utils.importlib import import_module
 
 from debug_toolbar.toolbar import DebugToolbar
 from debug_toolbar import settings as dt_settings
+from django.core.cache import cache
 
 _HTML_TYPES = ('text/html', 'application/xhtml+xml')
 # Handles python threading module bug - http://bugs.python.org/issue14308
@@ -23,9 +24,6 @@ def show_toolbar(request):
     Default function to determine whether to show the toolbar on a given page.
     """
     if request.META.get('REMOTE_ADDR', None) not in settings.INTERNAL_IPS:
-        return False
-
-    if request.is_ajax():
         return False
 
     return bool(settings.DEBUG)
@@ -106,6 +104,11 @@ class DebugToolbarMiddleware(object):
 
         # Insert the toolbar in the response.
         content = force_text(response.content, encoding=settings.DEFAULT_CHARSET)
+        if request.is_ajax():
+            key = md5(content).hexdigest()
+            cache.set('debug-%s' % key, content.lower())
+            response['X-debug-toolbar'] = '/ajax-debug-toolbar/%s' % key
+            return response
         try:
             insert_at = content.lower().rindex(dt_settings.CONFIG['INSERT_BEFORE'].lower())
         except ValueError:
