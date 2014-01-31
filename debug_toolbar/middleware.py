@@ -9,12 +9,13 @@ from django.core.cache import cache
 from django.conf import settings
 from django.utils.encoding import force_text
 from django.utils.importlib import import_module
+from hashlib import md5
 
 from debug_toolbar.toolbar import DebugToolbar
 from debug_toolbar import settings as dt_settings
 from django.core.cache import cache
 
-_HTML_TYPES = ('text/html', 'application/xhtml+xml')
+_HTML_TYPES = ('text/html', 'application/xhtml+xml', 'application/json')
 # Handles python threading module bug - http://bugs.python.org/issue14308
 threading._DummyThread._Thread__stop = lambda x: 1
 
@@ -37,10 +38,11 @@ class DebugToolbarMiddleware(object):
     debug_toolbars = {}
 
     def process_request(self, request):
+        #import ipdb;ipdb.set_trace()
         if request.path.startswith("/ajax-debug-toolbar/"):
             key = request.path[request.path.find("/ajax-debug-toolbar/"):]
             from debug_toolbar import views
-            return views.render_cached_call(request.key)
+            return views.render_cached_call(request,key)
         # Decide whether the toolbar is active for this request.
         func_path = dt_settings.CONFIG['SHOW_TOOLBAR_CALLBACK']
         # Replace this with import_by_path in Django >= 1.6.
@@ -79,6 +81,7 @@ class DebugToolbarMiddleware(object):
 
     def process_response(self, request, response):
         toolbar = self.__class__.debug_toolbars.pop(threading.current_thread().ident, None)
+        #import ipdb;ipdb.set_trace()
         if not toolbar:
             return response
 
@@ -109,7 +112,7 @@ class DebugToolbarMiddleware(object):
         # Insert the toolbar in the response.
         content = force_text(response.content, encoding=settings.DEFAULT_CHARSET)
         if request.is_ajax():
-            key = md5(content).hexdigest()
+            key = md5(content.encode('utf-8')).hexdigest()
             cache.set('debug-%s' % key, content.lower())
             response['X-debug-toolbar'] = '/ajax-debug-toolbar/%s' % key
             return response

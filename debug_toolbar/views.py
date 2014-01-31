@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.utils.html import escape
 from django.utils.translation import ugettext as _
 
+from django.core.cache import cache
 from debug_toolbar.toolbar import DebugToolbar
 
 
