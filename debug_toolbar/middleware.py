@@ -113,7 +113,7 @@ class DebugToolbarMiddleware(object):
         content = force_text(response.content, encoding=settings.DEFAULT_CHARSET)
         if request.is_ajax():
             key = md5(content.encode('utf-8')).hexdigest()
-            cache.set('debug-%s' % key, content.lower())
+            cache.set('debug-%s' % key, toolbar.render_toolbar())
             response['X-debug-toolbar'] = '/ajax-debug-toolbar/%s' % key
             return response
         try:
