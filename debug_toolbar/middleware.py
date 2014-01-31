@@ -40,7 +40,7 @@ class DebugToolbarMiddleware(object):
     def process_request(self, request):
         #import ipdb;ipdb.set_trace()
         if request.path.startswith("/ajax-debug-toolbar/"):
-            key = request.path[request.path.find("/ajax-debug-toolbar/"):]
+            key = request.path[len("/ajax-debug-toolbar/"):]
             from debug_toolbar import views
             return views.render_cached_call(request,key)
         # Decide whether the toolbar is active for this request.
