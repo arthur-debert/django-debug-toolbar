@@ -18,3 +18,7 @@ def render_panel(request):
         panel = toolbar.get_panel_by_id(request.GET['panel_id'])
         content = panel.content
     return HttpResponse(content)
+
+def render_cached_call(request, key):
+    content = """<html><body>%s</body></html>""" % cache.get('debug-%s' % key)
+    return HttpResponse(content)
