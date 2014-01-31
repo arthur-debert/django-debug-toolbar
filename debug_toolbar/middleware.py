@@ -5,7 +5,7 @@ Debug Toolbar middleware
 from __future__ import absolute_import, unicode_literals
 
 import threading
-
+from django.core.cache import cache
 from django.conf import settings
 from django.utils.encoding import force_text
 from django.utils.importlib import import_module
@@ -37,6 +37,10 @@ class DebugToolbarMiddleware(object):
     debug_toolbars = {}
 
     def process_request(self, request):
+        if request.path.startswith("/ajax-debug-toolbar/"):
+            key = request.path[request.path.find("/ajax-debug-toolbar/"):]
+            from debug_toolbar import views
+            return views.render_cached_call(request.key)
         # Decide whether the toolbar is active for this request.
         func_path = dt_settings.CONFIG['SHOW_TOOLBAR_CALLBACK']
         # Replace this with import_by_path in Django >= 1.6.
